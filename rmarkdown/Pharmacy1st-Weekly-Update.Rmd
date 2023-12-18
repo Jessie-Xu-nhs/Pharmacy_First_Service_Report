@@ -1,0 +1,397 @@
+---
+title: "Pharmacy First Opt In Weekly Update"
+
+date: "Report date: `r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [theme.css, nhsr-fonts.css]
+    self_contained: true
+    lib_dir: libs
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(readxl)
+library(DBI)
+library(readr)
+library(writexl)
+library(xlsx)
+library(ggpubr)
+library(stringr)
+library(scales)
+library(readxl)
+library(textclean)
+library(grid)
+library(gridExtra)
+library(htmlwidgets)
+library(downloadthis)
+library(knitr)
+library(kableExtra)
+library(reactable)
+
+source("../01 Pharm1st_opt_in.R")
+
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+#avoid standard form
+options(scipen=999)
+
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
+
+```
+#### NOTE 
+
+Figures and graphs in this pack are updated weekly.
+
+DAC contractors have been excluded from any analysis in this pack. 
+
+---
+
+name: National
+
+### National View
+
+```{r  echo=FALSE}
+xaringanExtra::use_panelset()
+```
+ <font size="2">
+.panelset[
+
+.panel[.panel-name[Overview]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=4, fig.align='center'}
+plot_ph1st_national()
+```
+
+* As on **`r get_last()`** at national level, **`r get_total()`** contractors (**`r get_total_prec()`**% of all non-DAC contractors) have opted in to Pharmacy First Service.
+* As on **`r get_last_OC()`** at national level, **`r get_total_OC()`** contractors (**`r get_total_prec_OC()`**% of all non-DAC contractors) have opted in to Contraception Service. These include pharmacies newly signed up since 1st December and opted in automatically. 
+* As on **`r get_last_BP()`** at national level, **`r get_BP_totalReg()`** contractors had registered to provide BP check service, but **`r get_BP_invalid()`** of them have permanently closed, changed ownership or consolidated with other pharmacies according to pharmaceutical list published on **`r get_pharmList_date()`**.  Out of all **`r get_BP_totalReg()-get_BP_invalid()`** valid registrations, **`r get_BP_newReg()`** contractors were new opt-ins since 1st December 2023. 
+
+]
+.panel[.panel-name[Summary table (National)]
+<font size="1">
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+
+Ph1st_national%>%
+  download_this(
+    output_name = "national_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r table_national,echo=FALSE,warning=FALSE, fig.width=15, fig.height=10,fig.retina=1, dpi=50,fig.align='center'}
+
+reactable(
+  Ph1st_national,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+
+```
+
+]
+]
+---
+
+name: Regional
+### Regional View
+
+```{r  echo=FALSE}
+xaringanExtra::use_panelset()
+```
+ <font size="2">
+.panelset[
+.panel[.panel-name[Regional Overview]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+plot_ph1st_regional()
+```
+
+
+]
+.panel[.panel-name[Summary table (Regional)]
+<font size="1">
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+
+ph1st_regional %>%
+  download_this(
+    output_name = "Regional_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r table_regional,echo=FALSE,warning=FALSE, fig.width=15, fig.height=10,fig.retina=1, dpi=50,fig.align='center'}
+
+reactable(
+  ph1st_regional,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+```
+
+]
+]
+---
+
+name: ICB
+### ICB View
+
+```{r  echo=FALSE}
+xaringanExtra::use_panelset()
+```
+ <font size="2">
+.panelset[
+
+.panel[.panel-name[London]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+data<-get_pha1st_table_3("London")
+
+data %>%
+  download_this(
+    output_name = "London_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+reactable(
+  data,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+```
+
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+
+]
+.panel[.panel-name[South East]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+data<-get_pha1st_table_3("South East")
+
+data %>%
+  download_this(
+    output_name = "SE_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+reactable(
+  data,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+```
+
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+
+]
+.panel[.panel-name[South West]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+data<-get_pha1st_table_3("South West")
+
+data %>%
+  download_this(
+    output_name = "SW_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+reactable(
+  data,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+```
+
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+
+]
+.panel[.panel-name[Midlands]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+data<-get_pha1st_table_3("Midlands")
+
+data %>%
+  download_this(
+    output_name = "Midlands_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+reactable(
+  data,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+```
+
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+
+]
+.panel[.panel-name[East of England]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+data<-get_pha1st_table_3("East Of England")
+
+data %>%
+  download_this(
+    output_name = "EoE_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+reactable(
+  data,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+```
+
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+
+]
+.panel[.panel-name[North West]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+data<-get_pha1st_table_3("North West")
+
+data %>%
+  download_this(
+    output_name = "NW_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+reactable(
+  data,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+```
+
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+
+]
+.panel[.panel-name[North East and Yorkshire]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=15, fig.height=10}
+data<-get_pha1st_table_3("North East And Yorkshire")
+
+data %>%
+  download_this(
+    output_name = "NEY_opt_in",
+    output_extension = ".xlsx",
+    button_label = "Download Table",
+    button_type = "warning",
+    has_icon = TRUE,
+    icon = "fa fa-save")
+```
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+reactable(
+  data,
+  filterable = FALSE,
+  resizable = TRUE,
+  defaultPageSize =7,
+  defaultExpanded = FALSE,
+  paginateSubRows = TRUE,
+  height=400,
+  highlight = TRUE)
+```
+
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+
+]
+]
+---
+
+name: Maps
+### ICB heatmaps
+
+```{r  echo=FALSE}
+xaringanExtra::use_panelset()
+```
+ <font size="2">
+.panelset[
+
+.panel[.panel-name[ICB map: Pharmacy First Opt-in]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+library(sf)
+map_pha1st_icb(interactive_mode = FALSE, serv="Pharmacy First")
+```
+
+]
+.panel[.panel-name[ICB map: Contraception Opt-in]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+library(sf)
+map_pha1st_icb(interactive_mode = FALSE, serv="Contraception")
+```
+
+]
+]
+
+---
