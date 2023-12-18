@@ -1,0 +1,108 @@
+---
+title: "Contraception Service Opt In Weekly update"
+author: "As on `r Sys.Date()`"
+
+output:
+  beamer_presentation:
+    slide_level: 2
+    toc: true
+    includes:
+      in_header: slide_format2.tex
+  slidy_presentation: default
+sansfont: Calibri Light
+fontsize: 8pt
+classoption: aspectratio = 169
+---
+
+
+```{r libraries, include = FALSE}
+library(tidyverse)
+library(readxl)
+library(DBI)
+library(readr)
+library(writexl)
+library(xlsx)
+library(ggpubr)
+library(stringr)
+library(scales)
+library(readxl)
+library(textclean)
+library(grid)
+library(gridExtra)
+library(knitr)
+
+source("../OC_optin.R")
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## National view
+```{r  National_OptedIn, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+plot_OC_national()
+```
+
+* As on **`r get_last_OC()`** at national level, **`r get_total_OC()`** contractors (**`r get_total_prec_OC()`**% of all non-DAC contractors) have opted in to Contraception Service. These include pharmacies newly signed up since 1st December and opted in by default. 
+
+
+## Regional summary table
+```{r  Regional_OptedIn, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+kable(get_OC_table_2())
+```
+
+* Cumulative total contractors opted in to Contraception service as on **`r get_last_OC()`**)
+
+## ICBs In London Region
+```{r  ICB_OptedIn_lon, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+kable(get_OC_table_3("London"))
+```
+
+* Cumulative total contractors opted in to Contraception service as on **`r get_last_OC()`**)
+
+## ICBs In South East Region
+```{r  ICB_OptedIn_se, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+kable(get_OC_table_3("South East"))
+```
+
+* Cumulative total contractors opted in to Contraception service as on **`r get_last_OC()`**)
+
+## ICBs In South West Region
+```{r  ICB_OptedIn_SW, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+kable(get_OC_table_3("South West"))
+```
+
+* Cumulative total contractors opted in to Contraception service as on **`r get_last_OC()`**)
+
+## ICBs In Midlands Region
+```{r  ICB_OptedIn_mid, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+kable(get_OC_table_3("Midlands"))
+```
+
+* Cumulative total contractors opted in to Contraception service as on **`r get_last_OC()`**)
+
+## ICBs In East of England Region
+```{r  ICB_OptedIn_eoe, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+kable(get_OC_table_3("East of England"))
+```
+
+* Cumulative total contractors opted in to Contraception service as on **`r get_last_OC()`**)
+
+## ICBs In North West Region
+```{r  ICB_OptedIn_NW, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+kable(get_OC_table_3("North West"))
+```
+
+* Cumulative total contractors opted in to Contraception service as on **`r get_last_OC()`**)
+
+## ICBs In LNorth East and Yorkshire Region
+```{r  ICB_OptedIn_ney, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+kable(get_OC_table_3("North East And Yorkshire"))
+```
+
+* Cumulative total contractors opted in to Contraception service as on **`r get_last_OC()`**)
+
+## ICB level map
+```{r  ICB_map, echo = FALSE, warning = FALSE, fig.height=5, message = FALSE}
+map_OC_icb(interactive_mode = FALSE)
+```
