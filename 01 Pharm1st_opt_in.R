@@ -45,32 +45,27 @@ pharm_list<-Ref_PharmList_full%>%
   rename(FCode = `Pharmacy ODS Code (F-Code)`, 
          postcode = `Post Code`, 
          ICB_Name = `STP Name`, 
-         HWB = `Health and Wellbeing Board`)%>%
-  left_join(Ref_Contractor_full, "FCode") %>%
-  filter(ContractType != "DAC")%>%
-  mutate(Region_Name =ifelse(is.na(Region_Name), "Region Unknown", Region_Name))
-
-pharm_list<-pharm_list%>% 
-  left_join(icb_short, "STP Code")%>% 
-  mutate(`STP Code`= ifelse(is.na(Short_ICB_Name), paste0(`STP Code`, " (Old STP Code)"), `STP Code`))%>%
-  mutate(Region_Name =ifelse(is.na(Region_Name), "Region Unknown", Region_Name))
+         HWB = `Health and Wellbeing Board`)
 
 
 latest_contractor<-Ref_Contractor_full%>%
-  filter(is.na(Inactive),`ContractorType` == "Pharmacy")%>%
+  filter(is.na(EndDate),`ContractorType` == "Pharmacy")%>%
   select(FCode
-         ,`ContractorName`
-         ,`ParentOrgName`
-         ,`ParentOrgSize` 
          ,`STP`
          ,`RegionCode`
          ,`Region_Name`
-         ,`ClusterSize`
          ,`ContractType`)%>%
+  distinct()%>%
  collect()
 
 pharm_list_most_recent <-pharm_list%>%
-  filter(SnapshotMonth==max(SnapshotMonth)) 
+  filter(SnapshotMonth==max(SnapshotMonth)) %>%
+  left_join(latest_contractor, "FCode") %>%
+  filter(ContractType != "DAC")%>% 
+  left_join(icb_short, "STP Code")%>% 
+  mutate(`STP Code`= ifelse(is.na(Short_ICB_Name), paste0(`STP Code`, " (Old STP Code)"), `STP Code`))%>%
+  mutate(Region_Name =ifelse(is.na(Region_Name), "Region Unknown", Region_Name))
+  
 
 pharm_list_most_recent$STP<-ifelse(pharm_list_most_recent$STP=="Q62","QRV",pharm_list_most_recent$STP)
 
@@ -160,6 +155,45 @@ get_BP_newReg<-function(){
 get_last_BP<-function(){
   date<-as.character(max(BP_reg$`OptInDate`))
   date
+}
+#### CPCS registration -------
+
+#CPCS_file <- filenames%>% filter(tolower(substr(value, 1,8)) == "cpcs_reg")
+#CPCS_reg<-xlsx::read.xlsx(paste0("N:/_Everyone/Primary Care Group/Pharmacy SMT data pack/Pharmacy First/", CPCS_file), sheetName = "Registration", password=NULL)
+#CPCS_reg<-CPCS_reg%>%mutate(`OptInDate`=as.Date(`Date`, "%d/%m/%Y" ))
+
+#CPCS_dereg<-xlsx::read.xlsx(paste0("N:/_Everyone/Primary Care Group/Pharmacy SMT data pack/Pharmacy First/", CPCS_file), sheetName = "De-registration", password=NULL)
+
+sql<-"SELECT *   
+  FROM [NHSE_Sandbox_DispensingReporting].[dbo].[Service_Registrations]
+  where Service = 'Community Pharmacy Consultation Service' and 
+  DateReported = (select max([DateReported]) FROM [NHSE_Sandbox_DispensingReporting].[dbo].[Service_Registrations] 
+  where Service = 'Community Pharmacy Consultation Service') "
+result <- dbSendQuery(con,sql)
+CPCS_reg <- dbFetch(result)
+dbClearResult(result)
+
+CPCS_reg<-CPCS_reg%>%mutate(`OptInDate`=as.Date(`RegistrationDate`, "%d/%m/%Y" ))
+
+
+sql<-"SELECT distinct [FCode], [deReg]=1
+  FROM [NHSE_Sandbox_DispensingReporting].[dbo].[Service_Deregistrations]
+  where [Service]= 'Community Pharmacy Consultation Service' and [DateReported]= (select max([DateReported]) FROM [NHSE_Sandbox_DispensingReporting].[dbo].[Service_Deregistrations] where [Service] = 'Community Pharmacy Consultation Service')
+  and [ReRegistrationDate] is NULL "
+result <- dbSendQuery(con,sql)
+CPCS_dereg <- dbFetch(result)
+dbClearResult(result)
+
+CPCS_signup<-CPCS_reg%>%
+  filter(!(FCode %in% CPCS_dereg$FCode))%>%
+  inner_join(pharm_list_most_recent, "FCode")%>%
+  collect()
+
+get_CPCS_valid<-function(){
+  data<-CPCS_sigup
+  
+  v<-n_distinct(data$FCode)
+  v
 }
 
 #############################################################
@@ -309,6 +343,7 @@ get_pha1st_table_3<-function(reg="London"){
            `No of contractors opted in Contraception`,
            `% of contractors opted in Contraception`)%>%
     arrange(desc(`% of contractors opted in Pharm1st`)) %>% 
+    mutate(`ICB` =ifelse(is.na(`ICB`), "ICB Unknown", `ICB`))%>%
     collect()
   
   data
@@ -332,6 +367,7 @@ plot_ph1st_national<-function(){
     mutate(week=floor_date(as.Date(`Opt.In.Date`, "%Y-%m-%d"), unit="week"))%>%
     group_by(week)%>%
     summarise( `optin`=n_distinct(`ODS.Code`))%>%
+    mutate(service="Pharmacy First Opt-In")%>%
     collect()
   
   data2 <- OC_opt%>%
@@ -339,28 +375,46 @@ plot_ph1st_national<-function(){
     mutate(week=floor_date(as.Date(`Opt.In.Date`, "%Y-%m-%d"), unit="week"))%>%
     group_by(week)%>%
     summarise( `optin`=n_distinct(`ODS.Code`))%>%
+    mutate(service="Contraception Opt-In")%>%
     collect()
   
+  data3 <- BP_reg%>%
+    filter(Date>="2023-12-01", !is.na(SnapshotMonth))%>%
+    mutate(week=floor_date(as.Date(`OptInDate`, "%Y-%m-%d"), unit="week"))%>%
+    group_by(week)%>%
+    summarise( `optin`=n_distinct(`FCode`))%>%
+    mutate(service="BP check service signup since 01Dec2023")%>%
+    collect()
+  
+  data<-rbind(data1,data2,data3)
+  
+  range <-  c(as.Date(min(data$week)), as.Date((max(data$week)+7)))
   
   p1<- ggplot() +
-    geom_line(data1, mapping = aes(x = `week` , y = `optin` ), colour = "black") +
-    geom_line(data2, mapping = aes(x = `week` , y = `optin` ), colour = "red") +
+    geom_line(data, mapping = aes(x = `week` , y = `optin`,colour = `service`)) +
+    #geom_line(data2, mapping = aes(x = `week` , y = `optin` ), colour = "red") +
     geom_point()+
     ggrepel::geom_label_repel(data = data1,
                               mapping = aes(x = `week` , y = `optin`,
                                             label = `optin`),
-                              size = 3.5, color = "black",
+                              size = 3.5, color = "blue",
                               label.size = NA,
                               box.padding = unit(0.5, "lines")) +
     ggrepel::geom_label_repel(data = data2,
                               mapping = aes(x = `week` , y = `optin`,
                                             label = `optin`),
+                              size = 3.5, color = "green",
+                              label.size = NA,
+                              box.padding = unit(0.25, "lines")) +
+    ggrepel::geom_label_repel(data = data3,
+                              mapping = aes(x = `week` , y = `optin`,
+                                            label = `optin`),
                               size = 3.5, color = "red",
                               label.size = NA,
-                              box.padding = unit(0.5, "lines")) +
-    scale_x_date(date_labels = "%Y-%m-%d")+ 
-    theme_bw() +
-    theme(axis.text.x=element_text(angle=45,hjust=0.5,vjust=0.5))+
+                              box.padding = unit(0.25, "lines")) +
+    scale_x_date(date_labels = "%Y-%m-%d",limits = range)+
+    theme_bw()+
+    theme(legend.position = "bottom",legend.title = element_blank ())+
     scale_size_manual(values = 1) +
     scale_y_continuous(label = scales::comma,
                        breaks = scales::pretty_breaks()) +

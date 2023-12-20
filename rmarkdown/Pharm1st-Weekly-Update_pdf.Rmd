@@ -38,13 +38,13 @@ source("../01 Pharm1st_opt_in.R")
 knitr::opts_chunk$set(echo = FALSE)
 ```
 ## National view
-```{r  National_OptedIn, echo = FALSE, warning = FALSE, fig.height=3, message = FALSE}
+```{r  National_OptedIn, echo = FALSE, warning = FALSE, fig.height=2.8, message = FALSE}
 plot_ph1st_national()
 ```
 
-* As on **`r get_last()`** at national level, **`r get_total()`** contractors (**`r get_total_prec()`**% of all non-DAC contractors) have opted in to Pharmacy First Service.
+* As on **`r get_last()`** at national level, **`r get_total()`** contractors (**`r get_total_prec()`**% of all non-DAC contractors) have opted in to Pharmacy First Service. For comparison, **`r get_CPCS_valid()`** contractors have signed up for CPCS since service launch. Contractors that had permanently closed or de-registered have been excluded using pharmaceutical list published on **`r get_pharmList_date()`**.
 * As on **`r get_last_OC()`** at national level, **`r get_total_OC()`** contractors (**`r get_total_prec_OC()`**% of all non-DAC contractors) have opted in to Contraception Service. These include pharmacies newly signed up since 1st December and opted in automatically. 
-* As on **`r get_last_BP()`** at national level, **`r get_BP_totalReg()`** contractors had registered to provide BP check service, but **`r get_BP_invalid()`** of them have permanently closed, changed ownership or consolidated with other pharmacies according to pharmaceutical list published on **`r get_pharmList_date()`**.  Out of all **`r get_BP_totalReg()-get_BP_invalid()`** valid registrations, **`r get_BP_newReg()`** contractors were new opt-ins since 1st December 2023. 
+* As on **`r get_last_BP()`** at national level, **`r get_BP_totalReg()`** contractors had registered to provide BP check service, but **`r get_BP_invalid()`** of them have permanently closed, changed ownership or consolidated with other pharmacies.  Out of all **`r get_BP_totalReg()-get_BP_invalid()`** valid registrations, **`r get_BP_newReg()`** contractors were new opt-ins since 1st December 2023. 
 
 ## Regional summary table
 ```{r  Regional_OptedIn, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
@@ -52,7 +52,7 @@ library(knitr)
 knitr::kable(get_pha1st_table_2())    
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
 
 ## ICBs In London Region
 ```{r  ICB_OptedIn_lon, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
@@ -60,7 +60,7 @@ library(knitr)
 knitr::kable(get_pha1st_table_3("London"))
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
 
 ## ICBs In South East Region
 ```{r  ICB_OptedIn_se, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
@@ -68,7 +68,7 @@ library(knitr)
 knitr::kable(get_pha1st_table_3("South East"))
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
 
 ## ICBs In South West Region
 ```{r  ICB_OptedIn_SW, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
@@ -76,32 +76,31 @@ library(knitr)
 knitr::kable(get_pha1st_table_3("South West"))
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
 
 ## ICBs In Midlands Region
-```{r  ICB_OptedIn_mid, echo = FALSE, warning = FALSE, fig.height=3.8, message = FALSE}
+```{r  ICB_OptedIn_mid, echo = FALSE, warning = FALSE, fig.height=3.6, message = FALSE}
 library(knitr)
-knitr::kable(get_pha1st_table_3("Midlands")[c(1,2,3,4,5),])
+knitr::kable(get_pha1st_table_3("Midlands")[c(1,2,3,4,5,6),])
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
 * The rest of ICBS in Midlands region are listed in the next page. 
 
 ## ICBs In Midlands Region - cont.
-```{r  ICB_OptedIn_mid2, echo = FALSE, warning = FALSE, fig.height=3.8, message = FALSE}
+```{r  ICB_OptedIn_mid2, echo = FALSE, warning = FALSE, fig.height=3.7, message = FALSE}
 library(knitr)
-knitr::kable(get_pha1st_table_3("Midlands")[c(6,7,8,9,10,11),])
+knitr::kable(get_pha1st_table_3("Midlands")[c(7,8,9,10,11),])
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
 
 ## ICBs In East of England Region
-```{r  ICB_OptedIn_eoe, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+```{r  ICB_OptedIn_eoe, echo = FALSE, warning = FALSE, fig.height=3.8, message = FALSE}
 library(knitr)
 knitr::kable(get_pha1st_table_3("East Of England"))
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
 
 ## ICBs In North West Region
 ```{r  ICB_OptedIn_NW, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
@@ -109,7 +108,7 @@ library(knitr)
 knitr::kable(get_pha1st_table_3("North West"))
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
 
 ## ICBs In North East and Yorkshire Region
 ```{r  ICB_OptedIn_ney, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
@@ -117,16 +116,16 @@ library(knitr)
 knitr::kable(get_pha1st_table_3("North East And Yorkshire"))
 ```
 
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**)
+* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
 
 ## ICB level map for Pharmacy First Opt-in
-```{r  ICB_map_ph1st, echo = FALSE, warning = FALSE, fig.height=5, message = FALSE}
+```{r  ICB_map_ph1st, echo = FALSE, warning = FALSE, fig.height=5.2, message = FALSE}
 library(sf) 
 map_pha1st_icb(interactive_mode = FALSE, serv="Pharmacy First")
 ```
 
 
 ## ICB level map for Contraception Opt-in
-```{r  ICB_map_contrac, echo = FALSE, warning = FALSE, fig.height=5, message = FALSE}
+```{r  ICB_map_contrac, echo = FALSE, warning = FALSE, fig.height=5.2, message = FALSE}
 map_pha1st_icb(interactive_mode = FALSE, serv="Contraception")
 ```
