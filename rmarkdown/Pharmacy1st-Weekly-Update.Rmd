@@ -48,6 +48,10 @@ options(scipen=999)
 options(dplyr.summarise.inform = FALSE)
 
 ```
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
 #### NOTE 
 
 Figures and graphs in this pack are updated weekly.

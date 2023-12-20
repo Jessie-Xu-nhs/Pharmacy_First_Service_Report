@@ -421,7 +421,7 @@ map_pha1st_icb <- function(interactive_mode = FALSE, serv="Pharmacy First"){
   col_name = "% of contractors opted in Contraception"
   last <- get_last_OC()}
   
-  ICB_Boundaries <- sf::st_read("C:/Users/JTong/Documents/Rprojects/Unplanned-pharmacy-closures/R/ICB_Boundaries/Download_ICB_Boundaries.geojson", quiet = TRUE)
+  ICB_Boundaries <- sf::st_read("C:/Users/LXu/Documents/Pharmacy_First_Service_Report/maps/Download_ICB_Boundaries.geojson", quiet = TRUE)
   
   map_data <- dplyr::left_join(map_data, ICB_Boundaries, by = c("ICB_Code" = "icb_code"))
   
