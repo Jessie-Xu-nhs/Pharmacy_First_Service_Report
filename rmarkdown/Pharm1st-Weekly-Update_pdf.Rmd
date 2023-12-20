@@ -34,6 +34,10 @@ library(knitr)
 source("../01 Pharm1st_opt_in.R")
 ```
 
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
