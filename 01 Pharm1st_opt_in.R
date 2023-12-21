@@ -62,12 +62,24 @@ pharm_list_most_recent <-pharm_list%>%
   filter(SnapshotMonth==max(SnapshotMonth)) %>%
   left_join(latest_contractor, "FCode") %>%
   filter(ContractType != "DAC")%>% 
+  mutate(STP= ifelse(STP=="Q62","QRV",STP))%>%
+  mutate(`STP Code`= ifelse(`STP Code`=="Q62","QRV",`STP Code`))%>%
   left_join(icb_short, "STP Code")%>% 
-  mutate(`STP Code`= ifelse(is.na(Short_ICB_Name), paste0(`STP Code`, " (Old STP Code)"), `STP Code`))%>%
+  #mutate(`STP Code`= ifelse(is.na(Short_ICB_Name), paste0(`STP Code`, " (Old STP Code)"), `STP Code`))%>%
   mutate(Region_Name =ifelse(is.na(Region_Name), "Region Unknown", Region_Name))
   
 
-pharm_list_most_recent$STP<-ifelse(pharm_list_most_recent$STP=="Q62","QRV",pharm_list_most_recent$STP)
+#pharm_list_most_recent$STP<-ifelse(pharm_list_most_recent$STP=="Q62","QRV",pharm_list_most_recent$STP)
+
+total<-pharm_list_most_recent %>%
+  summarise(`Total contractors`=n_distinct(FCode))
+
+ICB_total<-pharm_list_most_recent %>%
+  group_by(STP)%>%
+  summarise(`Total contractors`=n_distinct(FCode))%>%
+  rename(`STP Code`=STP)%>%
+  left_join(icb_short, "STP Code")%>%
+  rename(ICB_Code= `STP Code`)
 
 ######## Get all registration data ----
 filenames <- as_tibble(list.files(path="N:/_Everyone/Primary Care Group/Pharmacy SMT data pack/Pharmacy First"))
@@ -189,19 +201,66 @@ CPCS_signup<-CPCS_reg%>%
   inner_join(pharm_list_most_recent, "FCode")%>%
   collect()
 
-get_CPCS_valid<-function(){
-  data<-CPCS_sigup
+
+compare_cpcs<-function(){
+  data<-Pha1st%>%
+    rename(FCode=`ODS.Code`,`ICB_Code`=`ICB.Code`)%>%
+    select(FCode, `Opt.In.Date`,`Registered.for.CPCS`, `ICB_Code`)%>%
+    full_join(select(CPCS_sigup, c("FCode","Service","RegistrationDate")), "FCode")%>%
+    mutate(`Opt_in_Pharm1st`= ifelse(is.na(`Opt.In.Date`), FALSE, TRUE),
+           `check_CPCSreg`= ifelse(is.na(`RegistrationDate`), FALSE, TRUE),
+           mismatch = ifelse(`Registered.for.CPCS`== `check_CPCSreg`, FALSE, TRUE))%>%
+    left_join(pharm_list_most_recent, "FCode")%>%
+    mutate(`ICB_Code`=ifelse(is.na(ICB_Code), STP, ICB_Code))%>%
+    collect()
   
-  v<-n_distinct(data$FCode)
+  data
+  
+}
+
+######## please note: 
+## valid CPCS registrations are current CPCS registrations first filtered out the ones de-registered (and not re-registered again), 
+## then checked against last pharmaceutical list (not ref_contractor table). 
+## and finally added the ones that appeared in pharmacy first opt-in data (the ones that marked as TRUE for "registered for CPCS") but not appearing in the pharmList yet as those one are very recent opt-in and very likely to be newly opened pharmacies. 
+####################
+
+get_CPCS_valid<-function(){
+  data<-compare_cpcs()%>%
+    filter(`mismatch`== TRUE)
+  
+  v<-n_distinct(CPCS_sigup$FCode)+ n_distinct(data$FCode)
   v
+}
+
+compare_cpcs_icb<- function(){
+  data1 <-compare_cpcs()%>%
+    filter(`Opt_in_Pharm1st`== FALSE)%>%
+    group_by(ICB_Code)%>%
+    summarise(`No of CPCS signups not opted-in Pharm1st`= n_distinct(FCode))%>%
+    mutate(ICB_Code=ifelse(is.na(ICB_Code), "ICB unknown", ICB_Code))%>%
+    collect()
+    
+  data2 <-compare_cpcs()%>%
+    filter(`mismatch`==FALSE & `check_CPCSreg`== FALSE)%>%
+    group_by(ICB_Code)%>%
+    summarise(`No of Pharm1st Opt-Ins not registered for CPCS`= n_distinct(FCode))%>%
+    mutate(ICB_Code=ifelse(is.na(ICB_Code), "ICB unknown", ICB_Code))%>%
+    right_join(data1, "ICB_Code")%>%
+    left_join(ICB_total, "ICB_Code")%>%
+    mutate(`% of contractors signed up for CPCS but not opted in Pharm First`= round(`No of CPCS signups not opted-in Pharm1st`/`Total contractors`*100,0),
+           `% of contractors opted in Pharm1st but not registered for CPCS`= round(`No of Pharm1st Opt-Ins not registered for CPCS`/`Total contractors`*100,0))%>%
+    select(ICB_Code,`No of CPCS signups not opted-in Pharm1st`, 
+           `% of contractors signed up for CPCS but not opted in Pharm First`,
+           `No of Pharm1st Opt-Ins not registered for CPCS`,
+           `% of contractors opted in Pharm1st but not registered for CPCS`)
+    
+    
+  data2
 }
 
 #############################################################
 
 get_pha1st_table_1<- function(){
-  
-  total<-pharm_list_most_recent %>%
-    summarise(`Total contractors`=n_distinct(FCode))
   
   
   data1 <- OC_opt %>%
@@ -210,6 +269,10 @@ get_pha1st_table_1<- function(){
 
     collect()
   
+  data2 <- BP_reg%>%
+    filter(Date>="2023-12-01", !is.na(SnapshotMonth))%>%
+    summarise(`New BPcheck service signups since 1stDec2023` =n_distinct(`FCode`))
+  
   
   data <- Pha1st %>%
     filter(`Opted.In`==TRUE)%>%
@@ -217,12 +280,14 @@ get_pha1st_table_1<- function(){
     mutate(`Total contractors`= total$`Total contractors`,
            `No of contractors opted in Contraception`= data1$`No of contractors opted in`,
            `% of contractors opted in Pharm1st`=round(`No of contractors opted in Pharm First`/`Total contractors`*100,1),
-           `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100,1))%>%
+           `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100,1),
+           `New BPcheck service signups since 1stDec2023`= data2$`New BPcheck service signups since 1stDec2023`)%>%
     select(`Total contractors`,
            `No of contractors opted in Pharm First`,
            `% of contractors opted in Pharm1st`, 
            `No of contractors opted in Contraception`, 
-           `% of contractors opted in Contraception`)%>%
+           `% of contractors opted in Contraception`,
+           `New BPcheck service signups since 1stDec2023`)%>%
     collect()
   
   
@@ -257,13 +322,7 @@ get_total_prec_OC<-function(){
 
 
 get_pha1st_table_2a<- function(){
-  
-  ICB_total<-pharm_list_most_recent %>%
-    group_by(STP)%>%
-    summarise(`Total contractors`=n_distinct(FCode))%>%
-    rename(`STP Code`=STP)%>%
-    left_join(icb_short, "STP Code")%>%
-    rename(ICB_Code= `STP Code`)
+
   
   region<- latest_contractor%>%
     select(STP, RegionCode, Region_Name)%>%
@@ -278,6 +337,12 @@ get_pha1st_table_2a<- function(){
     summarise(`No of contractors opted in Contraception`=n_distinct(FCode))%>%
     collect()
   
+  data2 <- BP_reg%>%
+    filter(Date>="2023-12-01", !is.na(SnapshotMonth))%>%
+    rename(ICB_Code=`ICB.Code`)%>%
+    group_by(ICB_Code)%>%
+    summarise(`New BPcheck service signups since 1stDec2023` =n_distinct(`FCode`))
+  
   data <- Pha1st %>%
     filter(`Opted.In`==TRUE)%>%
     rename(FCode=ODS.Code,ICB_Code=`ICB.Code`)%>%
@@ -286,6 +351,7 @@ get_pha1st_table_2a<- function(){
     summarise(`No of contractors opted in Pharmacy First`=n_distinct(FCode))%>%
     right_join(ICB_total, "ICB_Code")%>%
     right_join(data1,"ICB_Code")%>%
+    right_join(data2,"ICB_Code")%>%
     mutate(`% of contractors opted in Pharm1st`=round(`No of contractors opted in Pharmacy First`/`Total contractors`*100, 1),
            `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100, 1))%>%
     left_join(region, "ICB_Code")%>%
@@ -304,7 +370,8 @@ get_pha1st_table_2b<- function(){
            `No of contractors opted in Pharmacy First`,  
            `% of contractors opted in Pharm1st`,
            `No of contractors opted in Contraception`,
-           `% of contractors opted in Contraception`)%>%
+           `% of contractors opted in Contraception`,
+         `New BPcheck service signups since 1stDec2023`)%>%
     arrange(desc(`% of contractors opted in Pharm1st`)) %>% 
     collect()
 }
@@ -315,7 +382,8 @@ get_pha1st_table_2<- function(){
     group_by(Region_Name)%>%
     summarise(`No of contractors opted in Pharmacy First`=sum(`No of contractors opted in Pharmacy First`,na.rm=T),
               `No of contractors opted in Contraception`=sum(`No of contractors opted in Contraception`,na.rm=T), 
-              `Total contractors`=sum(`Total contractors`, na.rm=T))%>%
+              `Total contractors`=sum(`Total contractors`, na.rm=T),
+              `New BPcheck service signups since 1stDec2023`=sum(`New BPcheck service signups since 1stDec2023`, na.rm=T))%>%
     mutate(`% of contractors opted in Pharm1st`=round(`No of contractors opted in Pharmacy First`/`Total contractors`*100, 1),
            `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100, 1))%>%
     select( Region_Name, 
@@ -323,7 +391,8 @@ get_pha1st_table_2<- function(){
            `No of contractors opted in Pharmacy First`,  
            `% of contractors opted in Pharm1st`,
            `No of contractors opted in Contraception`,
-           `% of contractors opted in Contraception`)%>%
+           `% of contractors opted in Contraception`,
+           `New BPcheck service signups since 1stDec2023`)%>%
     arrange(desc(`% of contractors opted in Pharm1st`)) %>%
     collect()
   
@@ -335,13 +404,19 @@ ph1st_regional<-get_pha1st_table_2()
 get_pha1st_table_3<-function(reg="London"){
   
   data<-get_pha1st_table_2a()%>%
+    left_join(compare_cpcs_icb(), "ICB_Code")%>%
     filter(Region_Name==reg)%>%
     select(`ICB`=`ICB_print`,
            `Total contractors`, 
            `No of contractors opted in Pharmacy First`,  
            `% of contractors opted in Pharm1st`,
+           `No of CPCS signups not opted-in Pharm1st`, 
+           `% of contractors signed up for CPCS but not opted in Pharm First`,
+           `No of Pharm1st Opt-Ins not registered for CPCS`,
+           `% of contractors opted in Pharm1st but not registered for CPCS`,
            `No of contractors opted in Contraception`,
-           `% of contractors opted in Contraception`)%>%
+           `% of contractors opted in Contraception`,
+           `New BPcheck service signups since 1stDec2023`)%>%
     arrange(desc(`% of contractors opted in Pharm1st`)) %>% 
     mutate(`ICB` =ifelse(is.na(`ICB`), "ICB Unknown", `ICB`))%>%
     collect()
@@ -349,6 +424,7 @@ get_pha1st_table_3<-function(reg="London"){
   data
   
 }
+
 
 get_last<-function(){
   date<-as.character(max(Pha1st$`OptInDate`))
@@ -434,7 +510,7 @@ plot_ph1st_regional<-function(){
              id.vars = c("Region_Name"), 
              variable.name = "Service")
  
-    title <- paste( "% of Contractors opted in to Pharmacy first, Contraception, BP check and CPCS services")
+    title <- paste( "% of Contractors opted in to Pharmacy first service and Contraception service")
     
     p2<- ggplot(data, aes(x = `Region_Name`, y = `value`, fill = `Service`)) +
       geom_bar(width=0.7, position=position_dodge(width=0.75), stat="identity") +
@@ -465,8 +541,11 @@ map_pha1st_icb <- function(interactive_mode = FALSE, serv="Pharmacy First"){
     tmap::tmap_mode("plot")
     
   }
-  
+  if(serv == "CompareCPCS"){
+    map_data=compare_cpcs_icb()
+    }else {
   map_data<-get_pha1st_table_2a()
+  }
   
   if(serv=="Pharmacy First"){
   col_name = "% of contractors opted in Pharm1st"
@@ -474,6 +553,10 @@ map_pha1st_icb <- function(interactive_mode = FALSE, serv="Pharmacy First"){
   else if(serv=="Contraception"){ 
   col_name = "% of contractors opted in Contraception"
   last <- get_last_OC()}
+  else if(serv == "CompareCPCS"){
+    col_name = "% of contractors signed up for CPCS but not opted in Pharm First"
+    last <- get_last()
+  }
   
   ICB_Boundaries <- sf::st_read("C:/Users/JTong/Documents/Rprojects/Unplanned-pharmacy-closures/R/ICB_Boundaries/Download_ICB_Boundaries.geojson", quiet = TRUE)
   
@@ -485,7 +568,10 @@ map_pha1st_icb <- function(interactive_mode = FALSE, serv="Pharmacy First"){
   map_data <- sf::st_as_sf(map_data)
   #map_data <- st_sf (map_data)
   
-  map_title <- paste0("% of contractors opted in to ",serv," service at ICB Level as on ", last)
+  if(serv == "CompareCPCS"){
+    map_title <- paste0("% of contractors signed up for CPCS but not opt in  to Pharmacy First at ICB Level as on ", last)}
+  else{
+  map_title <- paste0("% of contractors opted in to ",serv," service at ICB Level as on ", last)}
   
   
   map <- tm_shape(map_data) +
@@ -513,7 +599,7 @@ map_pha1st_icb <- function(interactive_mode = FALSE, serv="Pharmacy First"){
   }else{
     
     map <- map +
-      tm_layout(title = str_wrap(map_title, 80),
+      tm_layout(title = str_wrap(map_title, 60),
                 main.title.position = "center",
                 main.title.size = 1.05,
                 legend.title.size = 0.85,

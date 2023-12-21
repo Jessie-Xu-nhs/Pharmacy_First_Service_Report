@@ -53,70 +53,7 @@ knitr::kable(get_pha1st_table_2())
 ```
 
 * Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
-
-## ICBs In London Region
-```{r  ICB_OptedIn_lon, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
-library(knitr)
-knitr::kable(get_pha1st_table_3("London"))
-```
-
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
-
-## ICBs In South East Region
-```{r  ICB_OptedIn_se, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
-library(knitr)
-knitr::kable(get_pha1st_table_3("South East"))
-```
-
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
-
-## ICBs In South West Region
-```{r  ICB_OptedIn_SW, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
-library(knitr)
-knitr::kable(get_pha1st_table_3("South West"))
-```
-
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
-
-## ICBs In Midlands Region
-```{r  ICB_OptedIn_mid, echo = FALSE, warning = FALSE, fig.height=3.6, message = FALSE}
-library(knitr)
-knitr::kable(get_pha1st_table_3("Midlands")[c(1,2,3,4,5,6),])
-```
-
-* The rest of ICBS in Midlands region are listed in the next page. 
-
-## ICBs In Midlands Region - cont.
-```{r  ICB_OptedIn_mid2, echo = FALSE, warning = FALSE, fig.height=3.7, message = FALSE}
-library(knitr)
-knitr::kable(get_pha1st_table_3("Midlands")[c(7,8,9,10,11),])
-```
-
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
-
-## ICBs In East of England Region
-```{r  ICB_OptedIn_eoe, echo = FALSE, warning = FALSE, fig.height=3.8, message = FALSE}
-library(knitr)
-knitr::kable(get_pha1st_table_3("East Of England"))
-```
-
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
-
-## ICBs In North West Region
-```{r  ICB_OptedIn_NW, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
-library(knitr)
-knitr::kable(get_pha1st_table_3("North West"))
-```
-
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
-
-## ICBs In North East and Yorkshire Region
-```{r  ICB_OptedIn_ney, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
-library(knitr)
-knitr::kable(get_pha1st_table_3("North East And Yorkshire"))
-```
-
-* Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
+* ICB level data for all regions are available in the EXCEL output of this weekly update.
 
 ## ICB level map for Pharmacy First Opt-in
 ```{r  ICB_map_ph1st, echo = FALSE, warning = FALSE, fig.height=5.2, message = FALSE}

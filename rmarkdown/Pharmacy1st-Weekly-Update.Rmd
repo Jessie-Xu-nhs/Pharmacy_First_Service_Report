@@ -50,7 +50,7 @@ options(dplyr.summarise.inform = FALSE)
 ```
 #### NOTE 
 
-Figures and graphs in this pack are updated weekly.
+This pack is updated weekly. Opt-In and registration data for all services included in this pack are provided by BSA's MYS team. 
 
 DAC contractors have been excluded from any analysis in this pack. 
 
@@ -177,7 +177,7 @@ data %>%
     icon = "fa fa-save")
 ```
 
-```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=5, fig.align='center'}
 reactable(
   data,
   filterable = FALSE,
@@ -206,7 +206,7 @@ data %>%
     icon = "fa fa-save")
 ```
 
-```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=5, fig.align='center'}
 reactable(
   data,
   filterable = FALSE,
@@ -235,7 +235,7 @@ data %>%
     icon = "fa fa-save")
 ```
 
-```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=5, fig.align='center'}
 reactable(
   data,
   filterable = FALSE,
@@ -264,7 +264,7 @@ data %>%
     icon = "fa fa-save")
 ```
 
-```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=5, fig.align='center'}
 reactable(
   data,
   filterable = FALSE,
@@ -293,7 +293,7 @@ data %>%
     icon = "fa fa-save")
 ```
 
-```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=5, fig.align='center'}
 reactable(
   data,
   filterable = FALSE,
@@ -322,7 +322,7 @@ data %>%
     icon = "fa fa-save")
 ```
 
-```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=5, fig.align='center'}
 reactable(
   data,
   filterable = FALSE,
@@ -351,7 +351,7 @@ data %>%
     icon = "fa fa-save")
 ```
 
-```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=5, fig.align='center'}
 reactable(
   data,
   filterable = FALSE,
@@ -378,14 +378,21 @@ xaringanExtra::use_panelset()
  <font size="2">
 .panelset[
 
-.panel[.panel-name[ICB map: Pharmacy First Opt-in]
+.panel[.panel-name[Pharmacy First Opt-in]
 ```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
 library(sf)
 map_pha1st_icb(interactive_mode = FALSE, serv="Pharmacy First")
 ```
 
 ]
-.panel[.panel-name[ICB map: Contraception Opt-in]
+.panel[.panel-name[CPCS signups not opted in Pharmacy First]
+```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
+library(sf)
+map_pha1st_icb(interactive_mode = FALSE, serv="CompareCPCS")
+```
+
+]
+.panel[.panel-name[Contraception Opt-in]
 ```{r echo = FALSE, warning = FALSE, message = FALSE, fig.width=14, fig.height=5, fig.align='center'}
 library(sf)
 map_pha1st_icb(interactive_mode = FALSE, serv="Contraception")
