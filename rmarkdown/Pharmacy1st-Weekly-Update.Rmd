@@ -54,6 +54,8 @@ This pack is updated weekly. Opt-In and registration data for all services inclu
 
 DAC contractors have been excluded from any analysis in this pack. 
 
+There are data quality issues within all source data files used in this report. All figures should be quoted with this caveat in mind. 
+
 ---
 
 name: National

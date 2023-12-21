@@ -34,7 +34,7 @@ co_ords_data <- read_csv("N:/_Everyone/Primary Care Group/Unplanned Closures PHA
 pha1st_postcode_coords<-function(serv="OC"){
   
   pharm_list_most_recent <-pharm_list_most_recent%>%
-    rename(pcds = PostCode)
+    rename(pcds = postcode)
   
   if(serv=="Pharm1st"){
     #  name = "Pharmacy First Service"

@@ -206,7 +206,7 @@ compare_cpcs<-function(){
   data<-Pha1st%>%
     rename(FCode=`ODS.Code`,`ICB_Code`=`ICB.Code`)%>%
     select(FCode, `Opt.In.Date`,`Registered.for.CPCS`, `ICB_Code`)%>%
-    full_join(select(CPCS_sigup, c("FCode","Service","RegistrationDate")), "FCode")%>%
+    full_join(select(CPCS_signup, c("FCode","Service","RegistrationDate")), "FCode")%>%
     mutate(`Opt_in_Pharm1st`= ifelse(is.na(`Opt.In.Date`), FALSE, TRUE),
            `check_CPCSreg`= ifelse(is.na(`RegistrationDate`), FALSE, TRUE),
            mismatch = ifelse(`Registered.for.CPCS`== `check_CPCSreg`, FALSE, TRUE))%>%
@@ -228,7 +228,7 @@ get_CPCS_valid<-function(){
   data<-compare_cpcs()%>%
     filter(`mismatch`== TRUE)
   
-  v<-n_distinct(CPCS_sigup$FCode)+ n_distinct(data$FCode)
+  v<-n_distinct(CPCS_signup$FCode)+ n_distinct(data$FCode)
   v
 }
 
@@ -350,8 +350,8 @@ get_pha1st_table_2a<- function(){
     group_by(ICB_Code)%>%
     summarise(`No of contractors opted in Pharmacy First`=n_distinct(FCode))%>%
     right_join(ICB_total, "ICB_Code")%>%
-    right_join(data1,"ICB_Code")%>%
-    right_join(data2,"ICB_Code")%>%
+    left_join(data1,"ICB_Code")%>%
+    left_join(data2,"ICB_Code")%>%
     mutate(`% of contractors opted in Pharm1st`=round(`No of contractors opted in Pharmacy First`/`Total contractors`*100, 1),
            `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100, 1))%>%
     left_join(region, "ICB_Code")%>%
@@ -386,7 +386,7 @@ get_pha1st_table_2<- function(){
               `New BPcheck service signups since 1stDec2023`=sum(`New BPcheck service signups since 1stDec2023`, na.rm=T))%>%
     mutate(`% of contractors opted in Pharm1st`=round(`No of contractors opted in Pharmacy First`/`Total contractors`*100, 1),
            `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100, 1))%>%
-    select( Region_Name, 
+    select( Region = Region_Name, 
            `Total contractors`, 
            `No of contractors opted in Pharmacy First`,  
            `% of contractors opted in Pharm1st`,
@@ -502,7 +502,7 @@ plot_ph1st_national<-function(){
 
 plot_ph1st_regional<-function(){
   data<-ph1st_regional%>%
-    select(Region_Name, 
+    select(Region_Name=Region, 
            `% of contractors opted in Pharm1st`,
            `% of contractors opted in Contraception`)
   

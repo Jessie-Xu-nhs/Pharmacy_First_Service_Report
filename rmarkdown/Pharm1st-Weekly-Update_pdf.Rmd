@@ -49,7 +49,7 @@ plot_ph1st_national()
 ## Regional summary table
 ```{r  Regional_OptedIn, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
 library(knitr)
-knitr::kable(get_pha1st_table_2())    
+knitr::kable(ph1st_regional)    
 ```
 
 * Cumulative total contractors opted in to Pharmacy First service as on **`r get_last()`**
