@@ -42,8 +42,9 @@ pha1st_postcode_coords<-function(serv="OC"){
     pharm1st <- Pha1st %>%
       rename(FCode=ODS.Code,`Phone`=`F.code.Phone.Number`)%>%
       right_join(pharm_list_most_recent, "FCode")%>%
-      mutate(ICB = paste0(`STP Code`,": ", `Short_ICB_Name`), `LPC`=paste0(`LPC_Code`, ": ",`LPC_Name`))%>%
-      select(FCode, `Opted.In`,`Registered.for.CPCS`,`Opt.In.Date`,`OptInDate`,`pcds`,`Name`,`Phone`, `LPC`, `ICB`, `Region_Name`, `ParentOrgSize`,`ParentOrgName`)%>%
+      mutate(ICB = paste0(`STP Code`,": ", `Short_ICB_Name`), `LPC`=paste0(`LPC.Code`, ": ",`LPC.Name`))%>%
+      select(FCode, `Opted.In`,`Registered.for.CPCS`,`Opt.In.Date`,`OptInDate`,`pcds`,`Name`,`Phone`, `LPC`, `ICB`, `Region_Name`,`Pharmacy Trading Name`)%>%
+      mutate(`Name`=ifelse(is.na(Name), `Pharmacy Trading Name`, Name))%>%
       collect()
     
   } else if(serv =="OC")
@@ -52,8 +53,9 @@ pha1st_postcode_coords<-function(serv="OC"){
     pharm1st <- OC_opt %>%
       rename(FCode=ODS.Code,`Phone`=`F.code.Phone.Number`)%>%
       right_join(pharm_list_most_recent, "FCode")%>%
-      mutate(ICB = paste0(`STP Code`,": ", `Short_ICB_Name`), `LPC`=paste0(`LPC_Code`, ": ",`LPC_Name`))%>%
-      select(FCode, `Opted.In`,`Opt.In.Date`,`OptInDate`,`pcds`,`Name`,`Phone`, `LPC`, `ICB`, `Region_Name`, `ParentOrgSize`,`ParentOrgName`)%>%
+      mutate(ICB = paste0(`STP Code`,": ", `Short_ICB_Name`), `LPC`=paste0(`LPC.Code`, ": ",`LPC.Name`))%>%
+      select(FCode, `Opted.In`,`Opt.In.Date`,`OptInDate`,`pcds`,`Name`,`Phone`, `LPC`, `ICB`, `Region_Name`,`Pharmacy Trading Name`)%>%
+      mutate(`Name`=ifelse(is.na(Name), `Pharmacy Trading Name`, Name))%>%
       collect()
     
   }
@@ -114,7 +116,7 @@ create_map <- function(serv ="OC"){
   title1 =paste0("Pharmacies opted in for ",name, " as on ", lastdate)
   
   
-  var_list <- c("FCode", "Name","Phone", "LPC", "ICB", "Region_Name", "ParentOrgSize","ParentOrgName", "Opt.In.Date")
+  var_list <- c("FCode", "Name","Phone", "LPC", "ICB", "Region_Name", "Opt.In.Date")
   
   
   #get boundaries geopackage
