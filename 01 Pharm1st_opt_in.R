@@ -39,9 +39,6 @@ Ref_Contractor_full<-Ref_Contractor_full%>%mutate(FCode = `ContractorCode`)
 
 pharm_list<-Ref_PharmList_full%>%
   mutate(SnapshotMonth = as.Date(SnapshotMonth)) %>%
-  mutate(SnapshotMonth = if_else(SnapshotMonth == as.Date("2022-10-01"), 
-                                 as.Date("2022-09-01"), 
-                                 SnapshotMonth)) %>%
   rename(FCode = `Pharmacy ODS Code (F-Code)`, 
          postcode = `Post Code`, 
          ICB_Name = `STP Name`, 
