@@ -46,12 +46,12 @@ knitr::opts_chunk$set(echo = FALSE)
 plot_ph1st_national()
 ```
 
-* As on **`r get_last()`** at national level, **`r get_total()`** contractors (**`r get_total_prec()`**% of all non-DAC contractors) have opted in to Pharmacy First Service. For comparison, **`r get_CPCS_valid()`** contractors have signed up for CPCS since service launch. Contractors that had permanently closed or de-registered have been excluded using pharmaceutical list published on **`r get_pharmList_date()`**.
+* As on **`r get_last()`** at national level, **`r get_total()`** contractors (**`r get_total_prec()`**% of all non-DAC contractors) have opted in to Pharmacy First Service ((among which **`r get_100()`** are 100-hour pharmacy)). For comparison, **`r get_CPCS_valid()`** contractors have signed up for CPCS since service launch. Contractors that had permanently closed or de-registered have been excluded using pharmaceutical list published on **`r get_pharmList_date()`**.
 * As on **`r get_last_OC()`** at national level, **`r get_total_OC()`** contractors (**`r get_total_prec_OC()`**% of all non-DAC contractors) have opted in to Contraception Service. These include pharmacies newly signed up since 1st December and opted in automatically. 
 * As on **`r get_last_BP()`** at national level, **`r get_BP_totalReg()`** contractors had registered to provide BP check service, but **`r get_BP_invalid()`** of them have permanently closed, changed ownership or consolidated with other pharmacies.  Out of all **`r get_BP_totalReg()-get_BP_invalid()`** valid registrations, **`r get_BP_newReg()`** contractors were new opt-ins since 1st December 2023. 
 
 ## Regional summary table
-```{r  Regional_OptedIn, echo = FALSE, warning = FALSE, fig.height=4, message = FALSE}
+```{r  Regional_OptedIn, echo = FALSE, warning = FALSE, fig.height=5, message = FALSE}
 library(knitr)
 knitr::kable(ph1st_regional)    
 ```

@@ -51,9 +51,17 @@ latest_contractor<-Ref_Contractor_full%>%
          ,`STP`
          ,`RegionCode`
          ,`Region_Name`
-         ,`ContractType`)%>%
+         ,`ContractType`
+         ,`100hourPharmacy`)%>%
   distinct()%>%
  collect()
+
+hundredhour_pharmacy<-Ref_Contractor_full%>%
+  filter(is.na(EndDate),`ContractorType` == "Pharmacy")%>%
+  select(FCode
+         ,`100hourPharmacy`)%>%
+  distinct()%>%
+  collect()
 
 pharm_list_most_recent <-pharm_list%>%
   filter(SnapshotMonth==max(SnapshotMonth)) %>%
@@ -64,7 +72,7 @@ pharm_list_most_recent <-pharm_list%>%
   left_join(icb_short, "STP Code")%>% 
   #mutate(`STP Code`= ifelse(is.na(Short_ICB_Name), paste0(`STP Code`, " (Old STP Code)"), `STP Code`))%>%
   mutate(Region_Name =ifelse(is.na(Region_Name), "Region Unknown", Region_Name))
-  
+
 
 #pharm_list_most_recent$STP<-ifelse(pharm_list_most_recent$STP=="Q62","QRV",pharm_list_most_recent$STP)
 
@@ -263,12 +271,17 @@ get_pha1st_table_1<- function(){
   data1 <- OC_opt %>%
     filter(`Opted.In`==TRUE)%>%
     summarise(`No of contractors opted in`=n_distinct(`ODS.Code`))%>%
-
     collect()
   
   data2 <- BP_reg%>%
     filter(Date>="2023-12-01", !is.na(SnapshotMonth))%>%
     summarise(`New BPcheck service signups since 1stDec2023` =n_distinct(`FCode`))
+  
+  data3 <- Pha1st %>%
+    left_join(hundredhour_pharmacy,by=c("ODS.Code"="FCode"))%>%
+    filter(`100hourPharmacy`=="Yes")%>%
+    filter(`Opted.In`==TRUE)%>%
+    summarise(`No of 100-hour contractors opted in Pharm First`=n_distinct(`ODS.Code`))
   
   
   data <- Pha1st %>%
@@ -277,11 +290,15 @@ get_pha1st_table_1<- function(){
     mutate(`Total contractors`= total$`Total contractors`,
            `No of contractors opted in Contraception`= data1$`No of contractors opted in`,
            `% of contractors opted in Pharm1st`=round(`No of contractors opted in Pharm First`/`Total contractors`*100,1),
-           `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100,1),
+           `No of 100-hour contractors opted in Pharm1st`=data3$`No of 100-hour contractors opted in Pharm First`,
+           `% of 100-hour contractors opted in Pharm1st`=round(`No of 100-hour contractors opted in Pharm1st`/`Total contractors`*100,1),
+            `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100,1),
            `New BPcheck service signups since 1stDec2023`= data2$`New BPcheck service signups since 1stDec2023`)%>%
     select(`Total contractors`,
            `No of contractors opted in Pharm First`,
-           `% of contractors opted in Pharm1st`, 
+           `% of contractors opted in Pharm1st`,
+           `No of 100-hour contractors opted in Pharm1st`,
+           `% of 100-hour contractors opted in Pharm1st`,
            `No of contractors opted in Contraception`, 
            `% of contractors opted in Contraception`,
            `New BPcheck service signups since 1stDec2023`)%>%
@@ -297,6 +314,11 @@ Ph1st_national<- get_pha1st_table_1()
 
 get_total<-function(){
   v= Ph1st_national$ `No of contractors opted in Pharm First`
+  v
+}
+
+get_100<-function(){
+  v= Ph1st_national$`No of 100-hour contractors opted in Pharm1st`
   v
 }
 
@@ -340,6 +362,14 @@ get_pha1st_table_2a<- function(){
     group_by(ICB_Code)%>%
     summarise(`New BPcheck service signups since 1stDec2023` =n_distinct(`FCode`))
   
+  data3 <- Pha1st %>%
+    left_join(hundredhour_pharmacy,by=c("ODS.Code"="FCode"))%>%
+    filter(`100hourPharmacy`=="Yes")%>%
+    filter(`Opted.In`==TRUE)%>%
+    rename(FCode=ODS.Code,ICB_Code=`ICB.Code`)%>%
+    group_by(ICB_Code)%>%
+    summarise(`No of 100-hour contractors opted in Pharm First`=n_distinct(`FCode`))
+  
   data <- Pha1st %>%
     filter(`Opted.In`==TRUE)%>%
     rename(FCode=ODS.Code,ICB_Code=`ICB.Code`)%>%
@@ -347,9 +377,11 @@ get_pha1st_table_2a<- function(){
     group_by(ICB_Code)%>%
     summarise(`No of contractors opted in Pharmacy First`=n_distinct(FCode))%>%
     right_join(ICB_total, "ICB_Code")%>%
+    left_join(data3,"ICB_Code")%>%
     left_join(data1,"ICB_Code")%>%
     left_join(data2,"ICB_Code")%>%
     mutate(`% of contractors opted in Pharm1st`=round(`No of contractors opted in Pharmacy First`/`Total contractors`*100, 1),
+           `% of 100-hour contractors opted in Pharm1st`=round(`No of 100-hour contractors opted in Pharm First`/`Total contractors`*100, 1),
            `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100, 1))%>%
     left_join(region, "ICB_Code")%>%
     collect()
@@ -366,6 +398,8 @@ get_pha1st_table_2b<- function(){
            `Total contractors`, 
            `No of contractors opted in Pharmacy First`,  
            `% of contractors opted in Pharm1st`,
+         `No of 100-hour contractors opted in Pharm First`,
+         `% of 100-hour contractors opted in Pharm1st`,
            `No of contractors opted in Contraception`,
            `% of contractors opted in Contraception`,
          `New BPcheck service signups since 1stDec2023`)%>%
@@ -378,20 +412,33 @@ get_pha1st_table_2<- function(){
   data<-get_pha1st_table_2a()%>%
     group_by(Region_Name)%>%
     summarise(`No of contractors opted in Pharmacy First`=sum(`No of contractors opted in Pharmacy First`,na.rm=T),
+              `No of 100-hour contractors opted in Pharm First`=sum(`No of 100-hour contractors opted in Pharm First`,na.rm=T),
               `No of contractors opted in Contraception`=sum(`No of contractors opted in Contraception`,na.rm=T), 
               `Total contractors`=sum(`Total contractors`, na.rm=T),
               `New BPcheck service signups since 1stDec2023`=sum(`New BPcheck service signups since 1stDec2023`, na.rm=T))%>%
     mutate(`% of contractors opted in Pharm1st`=round(`No of contractors opted in Pharmacy First`/`Total contractors`*100, 1),
+           `% of 100-hour contractors opted in Pharm1st`=round(`No of 100-hour contractors opted in Pharm First`/`Total contractors`*100, 1),
            `% of contractors opted in Contraception`=round(`No of contractors opted in Contraception`/`Total contractors`*100, 1))%>%
     select( Region = Region_Name, 
            `Total contractors`, 
            `No of contractors opted in Pharmacy First`,  
            `% of contractors opted in Pharm1st`,
+           `No of 100-hour contractors opted in Pharm First`,
+           `% of 100-hour contractors opted in Pharm1st`,
            `No of contractors opted in Contraception`,
            `% of contractors opted in Contraception`,
            `New BPcheck service signups since 1stDec2023`)%>%
     arrange(desc(`% of contractors opted in Pharm1st`)) %>%
     collect()
+  
+  data$Region= ifelse(data$Region == "North East And Yorkshire", "NEY", 
+                                             ifelse(data$Region == "South West", "SW", 
+                                                    ifelse(data$Region == "East Of England", "EoE",
+                                                           ifelse(data$Region == "North West", "NE", 
+                                                                  ifelse(data$Region == "South East", "SE", 
+                                                                         ifelse(data$Region == "Midlands", "Mids", "LDN"))))))
+  
+  
   
   data
 }
@@ -407,6 +454,8 @@ get_pha1st_table_3<-function(reg="London"){
            `Total contractors`, 
            `No of contractors opted in Pharmacy First`,  
            `% of contractors opted in Pharm1st`,
+           `No of 100-hour contractors opted in Pharm First`,
+           `% of 100-hour contractors opted in Pharm1st`,
            `No of CPCS signups not opted-in Pharm1st`, 
            `% of contractors signed up for CPCS but not opted in Pharm First`,
            `No of Pharm1st Opt-Ins not registered for CPCS`,
@@ -459,7 +508,17 @@ plot_ph1st_national<-function(){
     mutate(service="BP check service signup since 01Dec2023")%>%
     collect()
   
-  data<-rbind(data1,data2,data3)
+  data4 <- Pha1st %>%
+    left_join(hundredhour_pharmacy,by=c("ODS.Code"="FCode"))%>%
+    filter(`100hourPharmacy`=="Yes")%>%
+    filter(`Opted.In`==TRUE)%>%
+    mutate(week=floor_date(as.Date(`Opt.In.Date`, "%Y-%m-%d"), unit="week"))%>%
+    group_by(week)%>%
+    summarise( `optin`=n_distinct(`ODS.Code`))%>%
+    mutate(service="Pharmacy First Opt-In (100-hour phmarcy only)")%>%
+    collect()
+  
+  data<-rbind(data1,data2,data3,data4)
   
   range <-  c(as.Date(min(data$week)), as.Date((max(data$week)+7)))
   
@@ -485,6 +544,12 @@ plot_ph1st_national<-function(){
                               size = 3.5, color = "red",
                               label.size = NA,
                               box.padding = unit(0.25, "lines")) +
+    ggrepel::geom_label_repel(data = data4,
+                              mapping = aes(x = `week` , y = `optin`,
+                                            label = `optin`),
+                              size = 3.5, color = "purple",
+                              label.size = NA,
+                              box.padding = unit(0.25, "lines")) +
     scale_x_date(date_labels = "%Y-%m-%d",limits = range)+
     theme_bw()+
     theme(legend.position = "bottom",legend.title = element_blank ())+
@@ -501,6 +566,7 @@ plot_ph1st_regional<-function(){
   data<-ph1st_regional%>%
     select(Region_Name=Region, 
            `% of contractors opted in Pharm1st`,
+           `% of 100-hour contractors opted in Pharm1st`,
            `% of contractors opted in Contraception`)
   
   data<-reshape2::melt(data, 
