@@ -51,17 +51,10 @@ latest_contractor<-Ref_Contractor_full%>%
          ,`STP`
          ,`RegionCode`
          ,`Region_Name`
-         ,`ContractType`
-         ,`100hourPharmacy`)%>%
+         ,`ContractType`)%>%
   distinct()%>%
  collect()
 
-hundredhour_pharmacy<-Ref_Contractor_full%>%
-  filter(is.na(EndDate),`ContractorType` == "Pharmacy")%>%
-  select(FCode
-         ,`100hourPharmacy`)%>%
-  distinct()%>%
-  collect()
 
 pharm_list_most_recent <-pharm_list%>%
   filter(SnapshotMonth==max(SnapshotMonth)) %>%
@@ -73,6 +66,9 @@ pharm_list_most_recent <-pharm_list%>%
   #mutate(`STP Code`= ifelse(is.na(Short_ICB_Name), paste0(`STP Code`, " (Old STP Code)"), `STP Code`))%>%
   mutate(Region_Name =ifelse(is.na(Region_Name), "Region Unknown", Region_Name))
 
+hundredhour_pharmacy<-pharm_list_most_recent%>%
+  select(FCode
+         ,`100hourPharmacy`=`100 Hour Pharmacy`)%>%collect()
 
 #pharm_list_most_recent$STP<-ifelse(pharm_list_most_recent$STP=="Q62","QRV",pharm_list_most_recent$STP)
 
