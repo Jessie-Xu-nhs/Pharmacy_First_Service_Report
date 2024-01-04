@@ -273,6 +273,25 @@ compare_cpcs_icb<- function(){
   data2
 }
 
+
+
+compare_cpcs_pharmacy<- function(){
+  data1 <-compare_cpcs()%>%
+    filter(`Opt_in_Pharm1st`== FALSE)%>%
+    distinct(FCode,.keep_all = TRUE)%>%
+    mutate(`contractors signed up for CPCS but not opted in Pharm1st`= FCode)%>%
+    mutate(ICB_Code=ifelse(is.na(ICB_Code), "ICB unknown", ICB_Code))%>%
+    select(`contractors signed up for CPCS but not opted in Pharm1st`,
+           `Pharmacy Trading Name`,
+           `Organisation Name`,
+           Region_Name,
+           RegionCode,
+           ICB_Code)%>%
+    collect()
+  
+  data1
+}
+
 #############################################################
 
 get_pha1st_table_1<- function(){

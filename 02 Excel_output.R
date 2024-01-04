@@ -1,7 +1,8 @@
 
 dataset_names<- list('National' = Ph1st_national, 
                      'Regional' = ph1st_regional, 
-                     'ICB' = get_pha1st_table_2b()
+                     'ICB' = get_pha1st_table_2b(),
+                     'Pharmacy Level' = compare_cpcs_pharmacy()
 )
 
 
